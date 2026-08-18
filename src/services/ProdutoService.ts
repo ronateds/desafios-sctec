@@ -3,11 +3,18 @@ import { ProdutoRepository } from '../repositories/ProdutoRepository'
 import { AppError } from '../types/AppError'
 
 export class ProdutoService {
-    constructor(private repo: ProdutoRepository) { }
+    constructor(private repo: ProdutoRepository) {
+    }
 
     async listarTodos(): Promise<Produto[]> {
-        return this.repo.findAll()
+        const produtos = await this.repo.findAll()
+
+        if (produtos.length === 0) {
+            throw new AppError("Nenhum produto encontrado", 404)
+        }
+        return produtos
     }
+
 
     async buscarPorId(id: number): Promise<Produto> {
         const produto = await this.repo.findById(id)

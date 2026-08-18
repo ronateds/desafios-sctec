@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
-import { AppError } from "../types/AppError";
+import { Request, Response, NextFunction } from 'express'
+import { AppError } from '../types/AppError'
 
 export function errorHandler(
     err: unknown,
@@ -12,6 +12,6 @@ export function errorHandler(
         return;
     }
 
-    console.error('[ERRO INESPERADO]', err);
-    res.status(500).json({ error: 'Erro interno no servidor' });
+    console.error('[ERRO INESPERADO]', err)
+    res.status(500).json({ error: 'Erro interno no servidor' })
 }

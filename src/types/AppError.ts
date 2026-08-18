@@ -6,6 +6,7 @@ export class AppError extends Error {
         super(message)
 
         // Necessário no Typescript ao estender classes nativas, em nosso caso Error
+        // Propotype refere-se a propriedade interna de um objeto
         Object.setPrototypeOf(this, AppError.prototype)
     }
 }

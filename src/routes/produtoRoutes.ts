@@ -1,52 +1,22 @@
-import { Router, Request, Response } from 'express';
-import { Produto } from '../types/produto.types';
+import { Router, Request, Response, NextFunction } from 'express';
+import { pool } from '../config/database'
+import { ProdutoRepository } from '../repositories/ProdutoRepository';
+import { ProdutoService } from '../services/produtoService';
+import { IdParam, ProdutoController } from '../controllers/produtoContoller';
+import { UpdateProdutoDto } from '../types/produto.types';
 
-const router = Router();
+// Composição (Injeção de Dependência)
+const repo = new ProdutoRepository(pool)
+const service = new ProdutoService(repo)
+const ctrl = new ProdutoController(service)
 
-// Lista em memória (hardcoded)
-const produtosEmMemmoria: Produto[] = [
-    {
-        id: 1,
-        nome: 'Notebook Pro 16',
-        preco: 4999.99,
-        estoque: 10,
-        ativo: true,
-        criadoEm: new Date('2023-01-12T10:00:00Z')
-    },
-    {
-        id: 1,
-        nome: 'Mouser Gamer RGB',
-        preco: 399.99,
-        estoque: 25,
-        ativo: true,
-        criadoEm: new Date('2023-01-10T10:00:00Z')
-    },
-]
+const produtoRoutes = Router();
 
-// GET /api/v1/produtos/ - busca todos os produtos
-router.get('/', (req: Request<{}, Produto[], {}, {}>, res: Response<Produto[]>) => {
-    res.json(produtosEmMemmoria);
-})
+produtoRoutes.get('/', (req: Request, res: Response, next: NextFunction) => ctrl.listar(req, res, next))
+produtoRoutes.post('/', (req: Request, res: Response, next: NextFunction) => ctrl.criar(req, res, next))
 
-// GET /api/v1/produtos/:id - busca por id
-router.get('/:id', (req: Request<{id: string}>, res: Response<Produto | { error: string }>) => {
-    const id = Number(req.params.id);
+produtoRoutes.get('/:id', (req: Request, res: Response, next: NextFunction) => ctrl.buscarPorId(req, res, next))
+produtoRoutes.patch('/:id', (req: Request<IdParam, {}, UpdateProdutoDto>, res: Response, next: NextFunction) => ctrl.atualizar(req, res, next))
+produtoRoutes.delete('/:id', (req: Request<IdParam>, res: Response, next: NextFunction) => ctrl.remover(req, res, next))
 
-    if(isNaN(id)) {
-        return res.status(400).json(
-            { error: 'ID deve ser um número'}
-        )
-    }
-
-    const produto = produtosEmMemmoria.find(p => p.id === id);
-
-    if(!produto) {
-        return res.status(400).json(
-            { error: 'Produto não encontrado'}
-        )
-    }
-
-    res.json(produto)
-});
-
-export default router
+export default produtoRoutes;
