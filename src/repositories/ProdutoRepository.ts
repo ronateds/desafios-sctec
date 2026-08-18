@@ -30,6 +30,16 @@ export class ProdutoRepository implements IProdutoRepository {
         return rows[0] ?? null
     }
 
+    //findByNomeParcial(nome: string): Promise<Produto[] | null>
+    async findByNomeParcial(nome: string): Promise<Produto[] | null> {
+        const { rows } = await this.db.query<Produto>(
+            'SELECT * FROM produtos WHERE nome ILIKE $1 AND ativo = true ORDER BY nome',
+            [`%${ nome }%`]
+        )
+
+        return rows ?? null
+    }
+
     //create(dto: CreateProdutoDto): Promise<Produto>
     async create(dto: CreateProdutoDto): Promise<Produto> {
         const { rows } = await this.db.query<Produto>(

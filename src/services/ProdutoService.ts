@@ -6,7 +6,12 @@ export class ProdutoService {
     constructor(private repo: ProdutoRepository) {
     }
 
-    async listarTodos(): Promise<Produto[]> {
+    async listarTodos(filtros?: { nome?: string }): Promise<Produto[] | null> {
+
+        if (filtros?.nome) {
+            return this.repo.findByNomeParcial(filtros.nome)
+        }
+
         const produtos = await this.repo.findAll()
 
         if (produtos.length === 0) {

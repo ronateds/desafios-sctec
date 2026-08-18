@@ -8,10 +8,10 @@ export type IdParam = { id: string }
 export class ProdutoController {
     constructor(private service: ProdutoService) { }
 
-    // -- GET /api/v1/produtos
-    async listar(req: Request, res: Response, next: NextFunction): Promise<void> {
+    // -- GET /api/v1/produtos || GET /api/v1/produtos?nome=abc
+    async listar(req: Request<{}, {}, {}, { nome?: string }>, res: Response, next: NextFunction): Promise<void> {
         try {
-            const produtos = await this.service.listarTodos()
+            const produtos = await this.service.listarTodos(req.query.nome ? { nome: req.query.nome } : undefined)
             res.json(produtos)
         } catch (err) {
             next(err)
