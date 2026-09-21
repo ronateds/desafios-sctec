@@ -14,6 +14,12 @@ export class ProductController {
 
         const { nome, descricao, preco, estoque, categoryId } = req.body
 
+        const existProduct = await productRepository.existsBy({ nome: req.body.nome })
+
+        if (existProduct) {
+            throw new AppError('Produto já cadastrado', 409)
+        }
+
         const category = await categoryRepository.findOneBy({
             id: Number(categoryId)
         })
@@ -46,6 +52,10 @@ export class ProductController {
 
         const id: number = Number(req.params.id)
 
+        if (Number.isNaN(id)) {
+            throw new AppError('ID do produto inválido', 400)
+        }
+
         const product = await productRepository.findOne({
             where: { id },
             relations: {
@@ -54,7 +64,7 @@ export class ProductController {
         })
 
         if (!product) {
-            return res.status(404).json({ message: 'Produto não encontrado' })
+            throw new AppError('Produto não encontrado', 404)
         }
 
         return res.status(200).json(product)
@@ -68,7 +78,8 @@ export class ProductController {
         const product = await productRepository.findOneBy({ id })
 
         if (!product) {
-            return res.status(404).json({ message: 'Produto não encontrado' })
+            throw new AppError('Produto não encontrado', 404)
+
         }
 
         productRepository.merge(product, req.body)
@@ -87,7 +98,7 @@ export class ProductController {
         const product = await productRepository.findOneBy({ id })
 
         if (!product) {
-            return res.status(404).json({ message: 'Produto não encontrado' })
+            throw new AppError('Produto não encontrado', 404)
         }
 
         await productRepository.remove(product)
@@ -95,24 +106,94 @@ export class ProductController {
         return res.status(204).send()
     }
 
-    async searchByName(req: Request, res: Response): Promise<Response> {
-        const productRepository = AppDataSource.getRepository(Product)
+    async search(req: Request, res: Response): Promise<Response> {
+        const {
+            nome,
+            categoryId,
+            minPrice,
+            maxPrice,
+            category,
+            sort,
+            order,
+            page,
+            limit
+        } = req.query
+        /* Implementar DTO para representar os dados */
 
-        const nome: string = String(req.query.nome || '')
+        const repository = AppDataSource.getRepository(Product)
 
-        if (!nome.trim()) {
-            return res.status(400).json({ message: 'O parâmetro "nome" é obrigatório' })
+        const query = repository
+            .createQueryBuilder("product")
+            .leftJoinAndSelect("product.category", "category")
+
+        if (nome) {
+            query.andWhere(
+                "product.nome ILIKE :nome",
+                { nome: `%${ nome }%` }
+            )
         }
 
-        const products = await productRepository.find({
-            where: {
-                nome: Like(`%${ nome }%`)
-            },
-            relations: {
-                category: true
+        if (categoryId) {
+            query.andWhere("product.categoryId = :categoryId",
+                { categoryId: Number(categoryId) }
+            )
+        }
+
+        if (category) {
+            query.andWhere("category.nome ILIKE :category",
+                { category: `%${ category }%` }
+            )
+        }
+
+        if (minPrice) {
+            query.andWhere("product.preco >= :minPrice",
+                { minPrice: Number(minPrice) }
+            )
+        }
+
+        if (maxPrice) {
+            query.andWhere("product.preco <= :maxPrice",
+                { maxPrice: Number(maxPrice) }
+            )
+        }
+
+        const allowedSortFields = {
+            name: "product.nome",
+            price: "product.preco",
+            stock: "product.estoque"
+        }
+
+        const sortField =
+            allowedSortFields[
+            String(sort) as keyof typeof allowedSortFields
+            ] ?? "product.nome"
+
+        const sortOrder =
+            String(order).toUpperCase() === "DESC" ? "DESC" : "ASC"
+
+        query.orderBy(sortField, sortOrder)
+
+        const currentPage = Number(page) || 1
+
+        const itemsPerPage = Number(limit) || 10
+
+        const offset = (currentPage - 1) * itemsPerPage
+
+        query.skip(offset).take(itemsPerPage)
+
+        const [products, total] = await query.getManyAndCount()
+
+        const totalPages = Math.ceil(total / itemsPerPage)
+
+        return res.json({
+            data: products,
+            pagination: {
+                page: currentPage,
+                limit: itemsPerPage,
+                total,
+                totalPages
             }
         })
-        return res.status(200).json(products)
     }
 
     /*
