@@ -1,4 +1,4 @@
-import { buscarSaudacao, calcularIdade, emailValido, validarCrm } from '../validacoes'
+import { buscarSaudacao, calcularIdade, emailValido, podeAgendarConsulta, validarCrm } from '../validacoes'
 import { describe, it, expect} from '@jest/globals'
 
 
@@ -44,3 +44,17 @@ describe('buscarSaudacao', () => {
         expect(resultado).toBe('Olá, Robson!')
     })
 })
+
+describe('podeAgendarConsulta', () => {
+    it('retorna true para uma data no futuro', () => {
+        const dataFutura = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const testeFuturo = podeAgendarConsulta(dataFutura);
+        expect(testeFuturo).toBeTruthy();
+    });
+
+    it('retorna false se for uma data passada', () => {
+        const dataPassada = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const testePassado = podeAgendarConsulta(dataPassada);
+        expect(testePassado).toBeFalsy();
+    });
+});
