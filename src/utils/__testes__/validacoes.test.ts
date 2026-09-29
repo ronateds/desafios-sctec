@@ -1,4 +1,4 @@
-import { buscarSaudacao, calcularIdade, emailValido, podeAgendarConsulta, validarCrm } from '../validacoes'
+import { buscarSaudacao, calcularIdade, emailValido, podeAgendarConsulta, validarCrm, validarSenha } from '../validacoes'
 import { describe, it, expect} from '@jest/globals'
 
 
@@ -58,3 +58,23 @@ describe('podeAgendarConsulta', () => {
         expect(testePassado).toBeFalsy();
     });
 });
+
+describe('validarSenha', () => {
+    it('senha menos de 6 caracteres retorna false', () => {
+        const senha = '12345';
+        const testeSenha = validarSenha(senha);
+        expect(testeSenha).toBe(false);
+    });
+
+    it('senha exatos 6 caracteres retorna true', () => {
+        const senha = '123456';
+        const testeSenha = validarSenha(senha);
+        expect(testeSenha).toBe(true);
+    });
+
+    it('senha mais de 6 caracteres retorna true', () => {
+        const senha = '1234567';
+        const testeSenha = validarSenha(senha);
+        expect(testeSenha).toBe(true);
+    });
+})
