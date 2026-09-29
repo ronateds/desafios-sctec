@@ -32,6 +32,10 @@ describe('emailValido', () => {
     it('retorna false para uma string vazia', () => {
         expect(emailValido('')).toBe(false)
     })
+
+    it('retorna false para e-mail sem dominio', () => {
+        expect(emailValido('ana@')).toBe(false);
+    })
 })
 
 describe('validarCrm', () => {
