@@ -12,6 +12,12 @@ describe('calcularidade', () => {
 
         expect(idade).toBe(30)
     })
+
+    it('retorna truth se nascido hoje', () => {
+        const dataNacimento = new Date(Date.now()).toString();
+        const idade = calcularIdade(dataNacimento);
+        expect(idade).toBe(0);
+    });
 })
 
 describe('emailValido', () => {
