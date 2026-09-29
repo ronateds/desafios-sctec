@@ -31,3 +31,7 @@ export async function buscarSaudacao(nome: string): Promise<string> {
 export function podeAgendarConsulta(dataHora: Date): boolean {
     return dataHora.getTime() > Date.now();
 }
+
+export function validarSenha(senha: string): boolean {
+    return senha.length >= 6;
+}
